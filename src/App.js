@@ -13,18 +13,31 @@ import {
 import * as tf from "@tensorflow/tfjs";
 
 function App() {
-  const [model, setModel] = useState(null);
   const [results, setResults] = useState(null);
   const [inputValues, setInputValues] = useState(null);
+  const [modelType, setModelType] = useState("rnn");
+  const [model, setModel] = useState(null);
 
+  // Load TFJS models when selected
   useEffect(() => {
-    const loadModel = async () => {
-      const loadedModel = await tf.loadLayersModel("/model/rnn.json");
-      setModel(loadedModel);
-      console.log("Model loaded successfully.");
-    };
-    loadModel();
-  }, []);
+    const tfModels = ["mlp", "rnn", "lstm"];
+    if (tfModels.includes(modelType)) {
+      const loadModel = async () => {
+        try {
+          const loadedModel = await tf.loadLayersModel(
+            `/model/${modelType}/${modelType}.json`
+          );
+          setModel(loadedModel);
+          console.log(`${modelType} model loaded successfully.`);
+        } catch (error) {
+          console.error("Model loading failed:", error);
+        }
+      };
+      loadModel();
+    } else {
+      setModel(null); // reset model if using backend
+    }
+  }, [modelType]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -37,10 +50,7 @@ function App() {
           .split("\n")
           .map((row) => row.split(","));
 
-        const headers = rows[0];
         const values = rows[1].map((val) => parseFloat(val));
-
-        // Filter out zero values and corresponding headers
         const filteredValues = values.filter((val) => val !== 0);
 
         setInputValues(filteredValues);
@@ -51,23 +61,55 @@ function App() {
   };
 
   const calculatePortfolio = async () => {
-    if (!model || !inputValues) {
-      alert("Please ensure the model is loaded and input data is prepared.");
+    if (!inputValues) {
+      alert("Please upload valid input data.");
       return;
     }
 
-    const tensorInput = tf.tensor3d(
-      [inputValues.map((v) => [v])],
-      [1, inputValues.length, 1]
-    );
-    const predictions = await model.predict(tensorInput).array();
+    const backendModels = ["linreg", "rf", "gbr"];
 
-    // Normalize predictions to sum to 100
-    const normalizedResults = predictions[0].map(
-      (value) => (value / predictions[0].reduce((a, b) => a + b, 0)) * 100
-    );
+    if (backendModels.includes(modelType)) {
+      // Use Flask backend
+      try {
+        const response = await fetch("http://localhost:5000/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ input: inputValues, model: modelType }),
+        });
 
-    setResults(normalizedResults);
+        const data = await response.json();
+
+        if (data.portfolio) {
+          setResults(data.portfolio);
+        } else {
+          alert("Prediction failed: " + (data.error || "Unknown error"));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Failed to connect to backend.");
+      }
+    } else {
+      // Use TensorFlow.js frontend model
+      if (!model) {
+        alert("Model not loaded yet.");
+        return;
+      }
+
+      let tensorInput;
+      if (["rnn", "lstm"].includes(modelType)) {
+        tensorInput = tf.tensor3d([inputValues.map((v) => [v])], [1, inputValues.length, 1]);
+      } else {
+        tensorInput = tf.tensor2d([inputValues], [1, inputValues.length]);
+      }
+      const predictions = await model.predict(tensorInput).array();
+
+      // Normalize predictions to sum to 100
+      const normalizedResults = predictions[0].map(
+        (value) => (value / predictions[0].reduce((a, b) => a + b, 0)) * 100
+      );
+
+      setResults(normalizedResults);
+    }
   };
 
   return (
@@ -92,8 +134,8 @@ function App() {
           <Container>
             <h1>Optimal Currency Portfolio Builder</h1>
             <p className="lead">
-              Based on the analysis of inflation, exchange rates, gold, FDI, and
-              risk factors.
+              Powered by machine learning models (MLP, RNN, LSTM, Random Forest,
+              and more).
             </p>
           </Container>
         </section>
@@ -102,22 +144,38 @@ function App() {
           <Container>
             <h2 className="text-center mb-4">Upload Input File</h2>
             <Row className="justify-content-center">
-              <Col md={6} className="mb-3">
+              <Col md={6}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Choose Model</Form.Label>
+                  <Form.Select
+                    value={modelType}
+                    onChange={(e) => setModelType(e.target.value)}
+                  >
+                    <option value="rnn">Recurrent Neural Network</option>
+                    <option value="mlp">Multi-Layer Perceptron</option>
+                    <option value="lstm">Long Short-Term Memory</option>
+                    <option value="linreg">Linear Regression</option>
+                    <option value="rf">Random Forest</option>
+                    <option value="gbr">Gradient Boosting</option>
+                  </Form.Select>
+                </Form.Group>
+
                 <Form.Group>
-                  <Form.Label>CSV File</Form.Label>
+                  <Form.Label>Upload CSV</Form.Label>
                   <Form.Control
                     type="file"
                     accept=".csv"
                     onChange={handleFileUpload}
                   />
                 </Form.Group>
+
+                <div className="text-center mt-4">
+                  <Button variant="success" onClick={calculatePortfolio}>
+                    Calculate Optimal Portfolio
+                  </Button>
+                </div>
               </Col>
             </Row>
-            <div className="text-center mt-4">
-              <Button variant="success" onClick={calculatePortfolio}>
-                Calculate Optimal Portfolio
-              </Button>
-            </div>
           </Container>
         </section>
 
@@ -147,8 +205,8 @@ function App() {
         <footer className="py-4 bg-dark text-light">
           <Container className="text-center">
             <p>
-              &copy; 2025 Abdukarimov, Karimuratova, Kazikhanov. All rights
-              reserved.
+              A. Abdukarimov, A. Karimuratova, Z. Kazikhanov. All rights
+              reserved. &copy; 2025
             </p>
           </Container>
         </footer>

@@ -9,6 +9,7 @@ import {
   Nav,
   Button,
   Form,
+  Card,
 } from "react-bootstrap";
 import * as tf from "@tensorflow/tfjs";
 
@@ -18,7 +19,16 @@ function App() {
   const [modelType, setModelType] = useState("rnn");
   const [model, setModel] = useState(null);
 
-  // Load TFJS models when selected
+  const modelInfo = {
+    rnn: "Recurrent Neural Network (RNN) is well-suited for sequential data analysis, capturing temporal dependencies.",
+    mlp: "Multi-Layer Perceptron (MLP) is a feedforward neural network ideal for simple nonlinear pattern recognition.",
+    lstm: "Long Short-Term Memory (LSTM) networks handle long-term dependencies in time series data effectively.",
+    linreg:
+      "Linear Regression is a simple statistical model used to model linear relationships between variables.",
+    rf: "Random Forest is an ensemble learning method using multiple decision trees for robust predictions.",
+    gbr: "Gradient Boosting is an advanced ensemble technique that builds strong predictive models through iterative learning.",
+  };
+
   useEffect(() => {
     const tfModels = ["mlp", "rnn", "lstm"];
     if (tfModels.includes(modelType)) {
@@ -35,7 +45,7 @@ function App() {
       };
       loadModel();
     } else {
-      setModel(null); // reset model if using backend
+      setModel(null);
     }
   }, [modelType]);
 
@@ -49,9 +59,13 @@ function App() {
           .trim()
           .split("\n")
           .map((row) => row.split(","));
-
         const values = rows[1].map((val) => parseFloat(val));
-        const filteredValues = values.filter((val) => val !== 0);
+        const filteredValues = values.filter((val) => val !== 0 && !isNaN(val));
+
+        if (filteredValues.length !== 25) {
+          alert("Input must contain exactly 25 numerical values.");
+          return;
+        }
 
         setInputValues(filteredValues);
         console.log("Processed Input:", filteredValues);
@@ -69,7 +83,6 @@ function App() {
     const backendModels = ["linreg", "rf", "gbr"];
 
     if (backendModels.includes(modelType)) {
-      // Use Flask backend
       try {
         const response = await fetch("http://localhost:5000/predict", {
           method: "POST",
@@ -89,7 +102,6 @@ function App() {
         alert("Failed to connect to backend.");
       }
     } else {
-      // Use TensorFlow.js frontend model
       if (!model) {
         alert("Model not loaded yet.");
         return;
@@ -97,13 +109,14 @@ function App() {
 
       let tensorInput;
       if (["rnn", "lstm"].includes(modelType)) {
-        tensorInput = tf.tensor3d([inputValues.map((v) => [v])], [1, inputValues.length, 1]);
+        tensorInput = tf.tensor3d(
+          [inputValues.map((v) => [v])],
+          [1, inputValues.length, 1]
+        );
       } else {
         tensorInput = tf.tensor2d([inputValues], [1, inputValues.length]);
       }
       const predictions = await model.predict(tensorInput).array();
-
-      // Normalize predictions to sum to 100
       const normalizedResults = predictions[0].map(
         (value) => (value / predictions[0].reduce((a, b) => a + b, 0)) * 100
       );
@@ -134,7 +147,7 @@ function App() {
           <Container>
             <h1>Optimal Currency Portfolio Builder</h1>
             <p className="lead">
-              Powered by machine learning models (MLP, RNN, LSTM, Random Forest,
+              Powered by Machine Learning models (MLP, RNN, LSTM, Random Forest,
               and more).
             </p>
           </Container>
@@ -159,6 +172,13 @@ function App() {
                     <option value="gbr">Gradient Boosting</option>
                   </Form.Select>
                 </Form.Group>
+
+                <Card className="my-4">
+                  <Card.Body>
+                    <Card.Title>Model Information</Card.Title>
+                    <Card.Text>{modelInfo[modelType]}</Card.Text>
+                  </Card.Body>
+                </Card>
 
                 <Form.Group>
                   <Form.Label>Upload CSV</Form.Label>
@@ -185,13 +205,12 @@ function App() {
             <div className="text-center">
               {results ? (
                 <ul className="list-unstyled">
-                  {["CAD", "RMB", "EUR", "JPY", "GBP", "USD"].map(
-                    (currency, index) => (
-                      <li key={index}>
-                        {currency}: {results[index].toFixed(2)}%
-                      </li>
-                    )
-                  )}
+                  {["EUR", "RMB", "USD", "GBP", "CAD", "JPY"].map((currency, index) => (
+                    <li key={index}>
+                      {currency}: {results[index].toFixed(2)}%
+                    </li>
+                  ))}
+
                 </ul>
               ) : (
                 <p className="text-muted">

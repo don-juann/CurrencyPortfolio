@@ -1,38 +1,62 @@
+::-webkit-scrollbar {
+  width: 0;
+}
+
 .App {
-  text-align: center;
+  font-family: "Arial", sans-serif;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Стили для светлой темы с мягкими цветами */
+.light-theme {
+  background-color: #f0f8ff; /* Очень светлый голубой фон */
+  color: #000000; /* Черный текст */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.light-theme .navbar {
+  background-color: #2d3748; /* Темный фон для Navbar */
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.light-theme .navbar-brand,
+.light-theme .navbar-nav .nav-link {
+  color: #ffffff; /* Белый цвет для текста на Navbar */
 }
 
-.App-link {
-  color: #61dafb;
+.light-theme .btn-outline-light {
+  color: #5bc0de; /* Нежный голубой для кнопки */
+  border-color: #5bc0de;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.light-theme .btn-outline-light:hover {
+  background-color: #5bc0de;
+  color: #ffffff;
+  border-color: #5bc0de;
+}
+
+.light-theme .btn-primary {
+  background-color: #63b3ed; /* Нежный синий для кнопок */
+  border-color: #63b3ed;
+}
+
+.light-theme .btn-primary:hover {
+  background-color: #4299e1; /* Немного более темный синий для кнопки при наведении */
+  border-color: #4299e1;
+}
+
+/* Стили для кнопок */
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 5px;
+  font-family: "Times New Roman", Times, serif; /* Шрифт для кнопок */
+}
+
+/* Стили для текста */
+p {
+  color: #000000; /* Черный текст для абзацев */
+  font-size: 16px; /* Размер шрифта */
+}
+
+/* Стили для графиков */
+canvas {
+  max-width: 100%;
 }

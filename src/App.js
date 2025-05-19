@@ -126,110 +126,134 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <header className="banner">
-        <Navbar bg="light" expand="lg" className="border-bottom">
-          <Container>
-            <Navbar.Brand href="#">
-              Optimal Currency Portfolio Builder
-            </Navbar.Brand>
-            <Navbar.Toggle aria-controls="basic-navbar-nav" />
-            <Navbar.Collapse id="basic-navbar-nav">
-              <Nav className="ms-auto">
-                <Nav.Link href="#input-data">Enter Data</Nav.Link>
-                <Nav.Link href="#results">Results</Nav.Link>
-              </Nav>
-            </Navbar.Collapse>
-          </Container>
-        </Navbar>
+    <div className="App light-theme">
+      <section
+        className="py-5 text-center"
+        style={{ backgroundColor: "#A5D5E6", color: "#1D242B" }}
+      >
+        <Container>
+          <h1 className="display-3">Optimal Currency Portfolio Builder</h1>
+          <p className="lead">
+            Powered by Machine Learning models (MLP, RNN, LSTM, Random Forest,
+            and more).
+          </p>
+        </Container>
+      </section>
 
-        <section className="py-5 text-center bg-light">
-          <Container>
-            <h1>Optimal Currency Portfolio Builder</h1>
-            <p className="lead">
-              Powered by Machine Learning models (MLP, RNN, LSTM, Random Forest,
-              and more).
-            </p>
-          </Container>
-        </section>
+      <section
+        id="input-data"
+        className="py-5"
+        style={{ backgroundColor: "#FAFAFA" }}
+      >
+        <Container>
+          <Row>
+            <Col md={7}>
+              <h2 className="text-center mb-4" style={{ color: "#0077C0" }}>
+                Upload Input File
+              </h2>
+              <Row className="justify-content-center">
+                <Col md={12}>
+                  <Form.Group className="mb-3">
+                    <Form.Label style={{ color: "#0077C0" }}>
+                      Choose Model
+                    </Form.Label>
+                    <Form.Select
+                      value={modelType}
+                      onChange={(e) => setModelType(e.target.value)}
+                    >
+                      <option value="rnn">Recurrent Neural Network</option>
+                      <option value="mlp">Multi-Layer Perceptron</option>
+                      <option value="lstm">Long Short-Term Memory</option>
+                      <option value="linreg">Linear Regression</option>
+                      <option value="rf">Random Forest</option>
+                      <option value="gbr">Gradient Boosting</option>
+                    </Form.Select>
+                  </Form.Group>
 
-        <section id="input-data" className="py-5">
-          <Container>
-            <h2 className="text-center mb-4">Upload Input File</h2>
-            <Row className="justify-content-center">
-              <Col md={6}>
-                <Form.Group className="mb-3">
-                  <Form.Label>Choose Model</Form.Label>
-                  <Form.Select
-                    value={modelType}
-                    onChange={(e) => setModelType(e.target.value)}
+                  <Card
+                    className="my-4 shadow-lg"
+                    style={{ backgroundColor: "#C7EEFF" }}
                   >
-                    <option value="rnn">Recurrent Neural Network</option>
-                    <option value="mlp">Multi-Layer Perceptron</option>
-                    <option value="lstm">Long Short-Term Memory</option>
-                    <option value="linreg">Linear Regression</option>
-                    <option value="rf">Random Forest</option>
-                    <option value="gbr">Gradient Boosting</option>
-                  </Form.Select>
-                </Form.Group>
+                    <Card.Body>
+                      <Card.Title style={{ color: "#0077C0" }}>
+                        About Model
+                      </Card.Title>
+                      <Card.Text style={{ color: "#0077C0" }}>
+                        {modelInfo[modelType]}
+                      </Card.Text>
+                    </Card.Body>
+                  </Card>
 
-                <Card className="my-4">
-                  <Card.Body>
-                    <Card.Title>Model Information</Card.Title>
-                    <Card.Text>{modelInfo[modelType]}</Card.Text>
-                  </Card.Body>
-                </Card>
+                  <Form.Group>
+                    <Form.Label style={{ color: "#0077C0" }}>
+                      Upload CSV
+                    </Form.Label>
+                    <Form.Control
+                      type="file"
+                      accept=".csv"
+                      onChange={handleFileUpload}
+                    />
+                  </Form.Group>
 
-                <Form.Group>
-                  <Form.Label>Upload CSV</Form.Label>
-                  <Form.Control
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileUpload}
-                  />
-                </Form.Group>
+                  <div className="text-center mt-4">
+                    <Button
+                      variant="primary"
+                      className="btn-lg shadow"
+                      style={{
+                        backgroundColor: "#0077C0",
+                        borderColor: "#0077C0",
+                      }}
+                      onClick={calculatePortfolio}
+                    >
+                      Calculate Optimal Portfolio
+                    </Button>
+                  </div>
+                </Col>
+              </Row>
+            </Col>
 
-                <div className="text-center mt-4">
-                  <Button variant="success" onClick={calculatePortfolio}>
-                    Calculate Optimal Portfolio
-                  </Button>
-                </div>
-              </Col>
-            </Row>
-          </Container>
-        </section>
+            <Col md={5}>
+              <h2 className="text-center mb-4" style={{ color: "#0077C0" }}>
+                Portfolio Results
+              </h2>
+              <div className="text-center">
+                {results ? (
+                  <ul className="list-unstyled">
+                    {["EUR", "RMB", "USD", "GBP", "CAD", "JPY"].map(
+                      (currency, index) => (
+                        <li key={index}>
+                          <img
+                            src={`/flags/${currency.toLowerCase()}.png`}
+                            alt={currency}
+                            style={{ width: "20px", marginRight: "10px" }}
+                          />
+                          {currency} - {results[index].toFixed(2)}%
+                        </li>
+                      )
+                    )}
+                  </ul>
+                ) : (
+                  <p className="text-muted">
+                    Results will be displayed here after calculation.
+                  </p>
+                )}
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
 
-        <section id="results" className="py-5 bg-light">
-          <Container>
-            <h2 className="text-center mb-4">Portfolio Results</h2>
-            <div className="text-center">
-              {results ? (
-                <ul className="list-unstyled">
-                  {["EUR", "RMB", "USD", "GBP", "CAD", "JPY"].map((currency, index) => (
-                    <li key={index}>
-                      {currency}: {results[index].toFixed(2)}%
-                    </li>
-                  ))}
-
-                </ul>
-              ) : (
-                <p className="text-muted">
-                  Results will be displayed here after calculation.
-                </p>
-              )}
-            </div>
-          </Container>
-        </section>
-
-        <footer className="py-4 bg-dark text-light">
-          <Container className="text-center">
-            <p>
-              A. Abdukarimov, A. Karimuratova, Z. Kazikhanov. All rights
-              reserved. &copy; 2025
-            </p>
-          </Container>
-        </footer>
-      </header>
+      <footer
+        className="py-4"
+        style={{ backgroundColor: "#1D242B", color: "#D1D1D1" }}
+      >
+        <Container className="text-center">
+          <p className="text-white">
+            A. Abdukarimov, A. Karimuratova, Z. Kazikhanov. All rights reserved.
+            &copy; 2025
+          </p>
+        </Container>
+      </footer>
     </div>
   );
 }

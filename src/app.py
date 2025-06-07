@@ -58,6 +58,7 @@ if __name__ == "__main__":
 
 '''
 pip install scikit-learn flask flask-cors joblib numpy
+pip install --upgrade scikit-learn==1.6.1
 cd src
 python app.py
 '''
